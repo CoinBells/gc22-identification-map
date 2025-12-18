@@ -29,12 +29,16 @@
       border-radius: 10px;
       width: 260px;
       user-select: none;
+      z-index: 10;
     }
     #panel h4 { margin: 0 0 10px; font-size: 14px; color: #d7e7ff; }
     .row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0; }
     label { font-size: 13px; opacity: 0.95; }
     input[type="checkbox"] { transform: scale(1.1); }
     .hint { margin-top: 8px; font-size: 12px; opacity: 0.75; line-height: 1.35; }
+
+    /* Canvas should be visible */
+    canvas { display:block; }
   </style>
 </head>
 
@@ -66,11 +70,22 @@
 
   <div id="info"></div>
 
-  <!-- THREE -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- Debug overlay (لو فيه خطأ بيطلع نص واضح) -->
+  <script>
+    window.addEventListener('error', (e) => {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
+      d.textContent = 'JS Error: ' + (e.message || e.error);
+      document.body.appendChild(d);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
+      d.textContent = 'Promise Error: ' + (e.reason?.message || e.reason);
+      document.body.appendChild(d);
+    });
+  </script>
 
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
