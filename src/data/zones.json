@@ -1,0 +1,38 @@
+[
+  {
+    "id": "Z2_GENERAL",
+    "name": "GENERAL HAZARDOUS AREA",
+    "zone": "Zone 2",
+    "purpose": "Lower probability hazardous area (general).",
+    "hse": [
+      "Maintain safe distances",
+      "No unauthorized activities",
+      "Follow permit-to-work rules"
+    ],
+    "shape": { "type": "rect", "x": 320, "y": 170, "w": 520, "h": 300 }
+  },
+  {
+    "id": "Z1_PROCESS",
+    "name": "PROCESS AREA",
+    "zone": "Zone 1",
+    "purpose": "Process equipment area with increased ignition risk.",
+    "hse": [
+      "No smoking / no open flame",
+      "Use intrinsically safe devices",
+      "Wear required PPE"
+    ],
+    "shape": { "type": "rect", "x": 450, "y": 240, "w": 260, "h": 180 }
+  },
+  {
+    "id": "Z0_LOCAL",
+    "name": "HIGH RISK SPOT",
+    "zone": "Zone 0",
+    "purpose": "Potential continuous presence of flammable atmosphere.",
+    "hse": [
+      "Strict access control",
+      "Only certified equipment allowed",
+      "Maintain gas test monitoring"
+    ],
+    "shape": { "type": "circle", "cx": 580, "cy": 320, "r": 55 }
+  }
+]
