@@ -1,0 +1,218 @@
+:root{
+  --bg:#0b0f14;
+  --panel:#0f1620cc;
+  --card:#0f1620f2;
+  --text:#e9f2ff;
+  --muted:#a9b7cc;
+  --line:#223044;
+  --accent:#4fc3f7;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.topbar{
+  position:sticky; top:0;
+  z-index:50;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(15,22,32,.98), rgba(15,22,32,.86));
+  backdrop-filter: blur(10px);
+}
+
+.brand{ display:flex; gap:10px; align-items:center; }
+.badge{
+  width:52px; height:52px;
+  border-radius:14px;
+  display:grid; place-items:center;
+  background:#0c1a27;
+  border:1px solid #1d3550;
+  color:var(--accent);
+  font-weight:800;
+}
+.titles .t1{ font-weight:800; letter-spacing:.2px; }
+.titles .t2{ color:var(--muted); font-size:12px; margin-top:2px; }
+
+.search{ display:flex; gap:8px; align-items:center; }
+.search input{
+  width:min(460px, 52vw);
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #1d3550;
+  background:#0c1a27;
+  color:var(--text);
+  outline:none;
+}
+.search button{
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #1d3550;
+  background:#102235;
+  color:var(--text);
+}
+
+.layout{
+  display:grid;
+  grid-template-columns: 340px 1fr;
+  gap:12px;
+  padding:12px;
+}
+
+@media (max-width: 900px){
+  .layout{ grid-template-columns: 1fr; }
+  .search input{ width: 56vw; }
+}
+
+.sidebar{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  box-shadow: var(--shadow);
+}
+
+.card h3{
+  margin:0 0 10px;
+  font-size:14px;
+  color:#d7e7ff;
+}
+
+.chk{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px solid #1a2a3d;
+  background:#0c1a27;
+  margin:8px 0;
+}
+.chk input{ transform: scale(1.15); }
+
+.note{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.4;
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-height: 42vh;
+  overflow:auto;
+  padding-right:4px;
+}
+
+.item{
+  border:1px solid #1a2a3d;
+  background:#0c1a27;
+  border-radius:12px;
+  padding:10px;
+  cursor:pointer;
+}
+.item .name{ font-weight:700; }
+.item .meta{ color:var(--muted); font-size:12px; margin-top:4px; }
+
+.stage{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.viewport{
+  position:relative;
+  height: min(62vh, 560px);
+  background:#05080c;
+  border:1px solid var(--line);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow: var(--shadow);
+}
+
+#map{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  filter: contrast(1.06) saturate(1.05);
+}
+
+/* SVG overlay sits on top */
+#overlay{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:auto;
+}
+
+.tip{
+  position:absolute;
+  z-index:30;
+  padding:10px 12px;
+  border-radius:12px;
+  background: rgba(0,0,0,.85);
+  border:1px solid #2a3a52;
+  color:var(--text);
+  font-size:12px;
+  max-width: 260px;
+  box-shadow: var(--shadow);
+}
+
+.info{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+  box-shadow: var(--shadow);
+}
+
+.info-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.info-title{
+  font-size:18px;
+  font-weight:900;
+  color:var(--accent);
+}
+.info-sub{ color:var(--muted); font-size:12px; margin-top:4px; }
+
+.close{
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #1d3550;
+  background:#102235;
+  color:var(--text);
+}
+
+.info-body{
+  color:var(--text);
+  line-height:1.6;
+  font-size:14px;
+}
+.info-body .k{ color:var(--muted); font-size:12px; margin-top:10px; }
+.info-body ul{ margin:8px 0 0; padding-right:18px; }
