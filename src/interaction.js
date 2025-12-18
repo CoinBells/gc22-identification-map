@@ -1,18 +1,31 @@
 const infoBox = document.getElementById('info');
 
 export function showInfo(item) {
+  if (!infoBox) return;
+
   infoBox.style.display = 'block';
 
-  const hseList = (item.hse || []).map(h => `<li>${h}</li>`).join('');
-  const meta = item.meta
-    ? Object.entries(item.meta).map(([k,v]) => `<p><b>${k}:</b> ${v}</p>`).join('')
+  const hse = Array.isArray(item.hse) ? item.hse : [];
+  const hseHtml = hse.length ? `<p><b>HSE:</b></p><ul>${hse.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : '';
+
+  const meta = item.meta && typeof item.meta === 'object'
+    ? Object.entries(item.meta).map(([k, v]) => `<p><b>${escapeHtml(k)}:</b> ${escapeHtml(String(v))}</p>`).join('')
     : '';
 
   infoBox.innerHTML = `
-    <h3>${item.name}</h3>
-    ${item.category ? `<p><b>Category:</b> ${item.category}</p>` : ''}
-    ${item.purpose ? `<p><b>Purpose:</b> ${item.purpose}</p>` : ''}
+    <h3>${escapeHtml(item.name || 'Unknown')}</h3>
+    ${item.category ? `<p><b>Category:</b> ${escapeHtml(item.category)}</p>` : ''}
+    ${item.purpose ? `<p><b>Purpose:</b> ${escapeHtml(item.purpose)}</p>` : ''}
     ${meta}
-    ${(item.hse && item.hse.length) ? `<p><b>HSE:</b></p><ul>${hseList}</ul>` : ''}
+    ${hseHtml}
   `;
+}
+
+function escapeHtml(str) {
+  return str
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
