@@ -5,12 +5,11 @@ export function buildZones(THREE, scene, zonesData) {
     "Zone 2": new THREE.Group()
   };
 
-  zonesData.forEach(z => {
-    const zoneGroup = createZonePolygon(THREE, z);
-    zoneGroup.position.y = 0.05;
+  for (const z of zonesData) {
+    const zoneObj = makeZone(THREE, z);
+    zoneObj.position.y = 0.05;
 
-    // attach info for click
-    zoneGroup.userData = {
+    zoneObj.userData = {
       type: "zone",
       id: z.id,
       name: z.name,
@@ -20,24 +19,18 @@ export function buildZones(THREE, scene, zonesData) {
       meta: { "Zone": z.zone }
     };
 
-    (groups[z.zone] || groups["Zone 2"]).add(zoneGroup);
-  });
+    (groups[z.zone] || groups["Zone 2"]).add(zoneObj);
+  }
 
   Object.values(groups).forEach(g => scene.add(g));
   return groups;
 }
 
-function createZonePolygon(THREE, z) {
-  const points01 = z.points;
+function makeZone(THREE, z) {
+  const toWorld = (p) => ({ x: (p.x - 0.5) * 100, z: (p.y - 0.5) * 100 });
 
-  const toWorld = (p) => ({
-    x: (p.x - 0.5) * 100,
-    z: (p.y - 0.5) * 100
-  });
-
-  // Shape in X/Z then rotate to ground
   const shape = new THREE.Shape();
-  points01.forEach((p, i) => {
+  z.points.forEach((p, i) => {
     const w = toWorld(p);
     if (i === 0) shape.moveTo(w.x, w.z);
     else shape.lineTo(w.x, w.z);
@@ -45,7 +38,6 @@ function createZonePolygon(THREE, z) {
   shape.closePath();
 
   const geom = new THREE.ShapeGeometry(shape);
-
   const mat = new THREE.MeshBasicMaterial({
     color: zoneColor(z.zone),
     transparent: true,
@@ -57,25 +49,24 @@ function createZonePolygon(THREE, z) {
   const fill = new THREE.Mesh(geom, mat);
   fill.rotation.x = -Math.PI / 2;
 
-  const outlinePoints = points01.map(p => {
-    const w = toWorld(p);
-    return new THREE.Vector3(w.x, 0.06, w.z);
-  });
-
   const outline = new THREE.LineLoop(
-    new THREE.BufferGeometry().setFromPoints(outlinePoints),
+    new THREE.BufferGeometry().setFromPoints(
+      z.points.map(p => {
+        const w = toWorld(p);
+        return new THREE.Vector3(w.x, 0.06, w.z);
+      })
+    ),
     new THREE.LineBasicMaterial({ color: zoneColor(z.zone) })
   );
 
   const group = new THREE.Group();
   group.add(fill);
   group.add(outline);
-
   return group;
 }
 
-function zoneColor(zoneName) {
-  if (zoneName === "Zone 0") return 0xff2d2d;  // red
-  if (zoneName === "Zone 1") return 0xffa500;  // orange
-  return 0xfff000;                              // yellow
+function zoneColor(name) {
+  if (name === "Zone 0") return 0xff2d2d;
+  if (name === "Zone 1") return 0xffa500;
+  return 0xfff000;
 }
