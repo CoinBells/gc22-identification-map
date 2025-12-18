@@ -1,0 +1,11 @@
+[
+  {
+    "id": "CONTROL-ROOM",
+    "name": "CONTROL ROOM",
+    "category": "Building",
+    "purpose": "Monitoring and control of GC-22 operations.",
+    "hse": ["Restricted access", "Electrical equipment"],
+    "model": null,
+    "pos2d": { "x": 0.55, "y": 0.83 }
+  }
+]
