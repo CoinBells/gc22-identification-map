@@ -6,7 +6,9 @@ export function showInfo(item) {
   infoBox.style.display = 'block';
 
   const hse = Array.isArray(item.hse) ? item.hse : [];
-  const hseHtml = hse.length ? `<p><b>HSE:</b></p><ul>${hse.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : '';
+  const hseHtml = hse.length
+    ? `<p><b>HSE:</b></p><ul>${hse.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`
+    : '';
 
   const meta = item.meta && typeof item.meta === 'object'
     ? Object.entries(item.meta).map(([k, v]) => `<p><b>${escapeHtml(k)}:</b> ${escapeHtml(String(v))}</p>`).join('')
@@ -22,7 +24,7 @@ export function showInfo(item) {
 }
 
 function escapeHtml(str) {
-  return str
+  return String(str)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
