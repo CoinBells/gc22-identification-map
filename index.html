@@ -2,47 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>GC-22 3D Map + Hazard Zones</title>
+  <title>GC-22 3D Identification Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    body { margin: 0; overflow: hidden; background: #0b0f14; font-family: Arial, sans-serif; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #0b0f14;
+      font-family: Arial, sans-serif;
+    }
 
+    canvas {
+      display: block;
+    }
+
+    /* Layer panel */
+    #panel {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 260px;
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      z-index: 10;
+      user-select: none;
+    }
+
+    #panel h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #d7e7ff;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+    }
+
+    label {
+      font-size: 13px;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.1);
+    }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 12px;
+      opacity: 0.75;
+      line-height: 1.4;
+    }
+
+    /* Info box */
     #info {
       position: absolute;
-      bottom: 20px; left: 20px;
+      bottom: 20px;
+      left: 20px;
       width: 340px;
-      background: rgba(0,0,0,0.88);
+      background: rgba(0, 0, 0, 0.88);
       color: #fff;
       padding: 15px;
       border-radius: 10px;
       display: none;
-      z-index: 20;
+      z-index: 10;
     }
-    #info h3 { margin-top: 0; color: #4fc3f7; }
 
-    #panel {
-      position: absolute;
-      top: 16px; left: 16px;
-      background: rgba(0,0,0,0.75);
-      color: #fff;
-      padding: 12px 12px 10px;
-      border-radius: 10px;
-      width: 260px;
-      user-select: none;
-      z-index: 20;
+    #info h3 {
+      margin-top: 0;
+      color: #4fc3f7;
     }
-    #panel h4 { margin: 0 0 10px; font-size: 14px; color: #d7e7ff; }
-    .row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0; }
-    label { font-size: 13px; opacity: 0.95; }
-    input[type="checkbox"] { transform: scale(1.1); }
-    .hint { margin-top: 8px; font-size: 12px; opacity: 0.75; line-height: 1.35; }
-
-    canvas { display: block; }
   </style>
 </head>
 
 <body>
+
+  <!-- Layer controls -->
   <div id="panel">
     <h4>Layers</h4>
 
@@ -68,29 +108,34 @@
 
     <div class="hint">
       Click equipment or a hazard zone to view details.<br />
-      Zoom/rotate using touch gestures.
+      Zoom / rotate using touch gestures.
     </div>
   </div>
 
+  <!-- Info popup -->
   <div id="info"></div>
 
-  <!-- Debug overlay: shows JS errors on-screen (helpful on iPhone Safari) -->
+  <!-- Debug overlay (helps on iPhone Safari) -->
   <script>
     window.addEventListener('error', (e) => {
       const d = document.createElement('div');
-      d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
+      d.style.cssText =
+        'position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
       d.textContent = 'JS Error: ' + (e.message || e.error);
       document.body.appendChild(d);
     });
+
     window.addEventListener('unhandledrejection', (e) => {
       const d = document.createElement('div');
-      d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
+      d.style.cssText =
+        'position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
       d.textContent = 'Promise Error: ' + (e.reason?.message || e.reason);
       document.body.appendChild(d);
     });
   </script>
 
-  <!-- IMPORTANT: Only this module entry point (no three.min.js scripts here) -->
+  <!-- IMPORTANT: only module entry point -->
   <script type="module" src="./src/main.js"></script>
+
 </body>
 </html>
