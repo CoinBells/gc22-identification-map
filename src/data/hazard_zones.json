@@ -1,0 +1,41 @@
+[
+  {
+    "id": "Z0-DESALTER-CORE",
+    "name": "DESALTER CORE AREA",
+    "zone": "Zone 0",
+    "purpose": "Highest hazard area near process equipment (core).",
+    "hse": ["No ignition sources", "Gas testing required", "Permit to Work as applicable"],
+    "points": [
+      { "x": 0.58, "y": 0.44 },
+      { "x": 0.78, "y": 0.44 },
+      { "x": 0.78, "y": 0.66 },
+      { "x": 0.58, "y": 0.66 }
+    ]
+  },
+  {
+    "id": "Z1-PROCESS-RING",
+    "name": "PROCESS AREA RING",
+    "zone": "Zone 1",
+    "purpose": "Hazard area surrounding primary process units.",
+    "hse": ["Control of ignition sources", "PPE required", "Follow HSE instructions"],
+    "points": [
+      { "x": 0.50, "y": 0.38 },
+      { "x": 0.84, "y": 0.38 },
+      { "x": 0.84, "y": 0.76 },
+      { "x": 0.50, "y": 0.76 }
+    ]
+  },
+  {
+    "id": "Z2-GENERAL-HAZARDOUS",
+    "name": "GENERAL HAZARDOUS AREA",
+    "zone": "Zone 2",
+    "purpose": "Lower probability hazardous area (general).",
+    "hse": ["Maintain safe distances", "No unauthorized activities"],
+    "points": [
+      { "x": 0.36, "y": 0.30 },
+      { "x": 0.92, "y": 0.30 },
+      { "x": 0.92, "y": 0.90 },
+      { "x": 0.36, "y": 0.90 }
+    ]
+  }
+]
