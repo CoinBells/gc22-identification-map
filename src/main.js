@@ -22,7 +22,7 @@ dirLight.position.set(40, 60, 40);
 scene.add(dirLight);
 
 // Ground map
-const mapTexture = new THREE.TextureLoader().load('./assets/images/gc22-map.jpg');
+const mapTexture = new THREE.TextureLoader().load('assets/images/gc22-map.jpg');
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(100, 100),
   new THREE.MeshBasicMaterial({ map: mapTexture })
