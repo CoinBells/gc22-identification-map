@@ -1,3 +1,7 @@
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+
 import { showInfo } from './interaction.js';
 import { buildZones } from './zones.js';
 
@@ -12,7 +16,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 0, 0);
 
@@ -21,7 +25,7 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
 dirLight.position.set(40, 60, 40);
 scene.add(dirLight);
 
-// Ground map
+// Ground map (اسمك الحالي gc22-map.jpg)
 const mapTexture = new THREE.TextureLoader().load('assets/images/gc22-map.jpg');
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(100, 100),
@@ -30,20 +34,17 @@ const ground = new THREE.Mesh(
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// Groups
 const equipmentGroup = new THREE.Group();
 scene.add(equipmentGroup);
 
-// Clickables
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const clickable = [];
 
-// GLB Loader
-const loader = new THREE.GLTFLoader();
+const loader = new GLTFLoader();
 
 // Load Equipment
-fetch('./src/data/equipment.json')
+fetch('src/data/equipment.json')
   .then(res => res.json())
   .then(data => {
     data.forEach(item => {
@@ -64,7 +65,6 @@ fetch('./src/data/equipment.json')
           new THREE.MeshStandardMaterial({ color: 0xff4444 })
         );
         marker.position.set((item.pos2d.x - 0.5) * 100, 1, (item.pos2d.y - 0.5) * 100);
-
         marker.userData = item;
         clickable.push(marker);
         equipmentGroup.add(marker);
@@ -72,15 +72,15 @@ fetch('./src/data/equipment.json')
     });
   });
 
-// Load Hazard Zones
+// Load Zones
 let zoneGroups = null;
 
-fetch('./src/data/hazard_zones.json')
+fetch('src/data/hazard_zones.json')
   .then(res => res.json())
   .then(zones => {
-    zoneGroups = buildZones(scene, zones);
+    zoneGroups = buildZones(THREE, scene, zones);
     Object.values(zoneGroups).forEach(g => clickable.push(g));
-    applyVisibility(); // apply initial toggles
+    applyVisibility();
   });
 
 // UI toggles
@@ -96,11 +96,10 @@ function applyVisibility() {
   zoneGroups["Zone 2"].visible = !!z2.checked;
   equipmentGroup.visible = !!eq.checked;
 }
-
 [z0, z1, z2, eq].forEach(el => el.addEventListener('change', applyVisibility));
 
-// Click handler
-window.addEventListener('click', event => {
+// Click
+window.addEventListener('click', (event) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -110,11 +109,10 @@ window.addEventListener('click', event => {
   if (hits.length > 0) {
     let obj = hits[0].object;
     while (obj && (!obj.userData || !obj.userData.name) && obj.parent) obj = obj.parent;
-    if (obj && obj.userData && obj.userData.name) showInfo(obj.userData);
+    if (obj?.userData?.name) showInfo(obj.userData);
   }
 });
 
-// Render loop
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
