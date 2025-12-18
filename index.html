@@ -1,75 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>GC-22 3D Identification Map</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <style>
-    body { margin:0; overflow:hidden; background:#0b0f14; font-family: Arial, sans-serif; }
-    canvas { display:block; }
-    #panel{
-      position:absolute; top:16px; left:16px; width:260px;
-      background:rgba(0,0,0,0.78); color:#fff; padding:12px;
-      border-radius:10px; z-index:10; user-select:none;
-    }
-    #panel h4{ margin:0 0 10px; font-size:14px; color:#d7e7ff; }
-    .row{ display:flex; justify-content:space-between; align-items:center; margin:6px 0; }
-    label{ font-size:13px; }
-    input[type="checkbox"]{ transform:scale(1.1); }
-    .hint{ margin-top:8px; font-size:12px; opacity:.75; line-height:1.4; }
-
-    #info{
-      position:absolute; bottom:20px; left:20px; width:340px;
-      background:rgba(0,0,0,0.88); color:#fff; padding:15px;
-      border-radius:10px; display:none; z-index:10;
-    }
-    #info h3{ margin-top:0; color:#4fc3f7; }
-  </style>
-
-  <!-- ✅ Fix for: Module name 'three' does not resolve -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>GC-22 Training Map</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
-  <div id="panel">
-    <h4>Layers</h4>
-    <div class="row"><label for="z0">Zone 0</label><input id="z0" type="checkbox" checked /></div>
-    <div class="row"><label for="z1">Zone 1</label><input id="z1" type="checkbox" checked /></div>
-    <div class="row"><label for="z2">Zone 2</label><input id="z2" type="checkbox" checked /></div>
-    <div class="row"><label for="eq">Equipment</label><input id="eq" type="checkbox" checked /></div>
-    <div class="hint">
-      Click equipment or a hazard zone to view details.<br />
-      Zoom / rotate using touch gestures.
+  <header class="topbar">
+    <div class="brand">
+      <div class="badge">GC-22</div>
+      <div class="titles">
+        <div class="t1">Interactive Identification Map</div>
+        <div class="t2">Training / HSE / Equipment Overview</div>
+      </div>
     </div>
-  </div>
 
-  <div id="info"></div>
+    <div class="search">
+      <input id="search" type="search" placeholder="ابحث عن معدّة… (مثال: Desalter, Tank, Control Room)" />
+      <button id="reset" type="button">Reset</button>
+    </div>
+  </header>
 
-  <!-- Debug overlay -->
-  <script>
-    window.addEventListener('error', (e) => {
-      const d = document.createElement('div');
-      d.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
-      d.textContent='JS Error: ' + (e.message || e.error);
-      document.body.appendChild(d);
-    });
-    window.addEventListener('unhandledrejection', (e) => {
-      const d = document.createElement('div');
-      d.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;background:#300;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:12px';
-      d.textContent='Promise Error: ' + (e.reason?.message || e.reason);
-      document.body.appendChild(d);
-    });
-  </script>
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="card">
+        <h3>Layers</h3>
 
-  <!-- Your app entry -->
-  <script type="module" src="./src/main.js"></script>
+        <label class="chk">
+          <input type="checkbox" id="layer-eq" checked />
+          <span>Equipment</span>
+        </label>
+
+        <label class="chk">
+          <input type="checkbox" id="layer-z0" checked />
+          <span>Zone 0</span>
+        </label>
+
+        <label class="chk">
+          <input type="checkbox" id="layer-z1" checked />
+          <span>Zone 1</span>
+        </label>
+
+        <label class="chk">
+          <input type="checkbox" id="layer-z2" checked />
+          <span>Zone 2</span>
+        </label>
+
+        <div class="note">
+          اضغط على أي معدّة أو منطقة خطرة لعرض التفاصيل.
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Equipment List</h3>
+        <div id="list" class="list"></div>
+      </section>
+    </aside>
+
+    <section class="stage">
+      <div class="viewport" id="viewport" aria-label="Map viewport">
+        <!-- Base map -->
+        <img id="map" src="./assets/gc22-map.jpg" alt="GC-22 map" />
+
+        <!-- SVG overlay -->
+        <svg id="overlay" viewBox="0 0 1000 600" preserveAspectRatio="none"></svg>
+
+        <!-- Tooltip -->
+        <div id="tip" class="tip" hidden></div>
+      </div>
+
+      <section class="info" id="info">
+        <div class="info-head">
+          <div>
+            <div class="info-title" id="info-title">اختر عنصرًا من الخريطة</div>
+            <div class="info-sub" id="info-sub">سيظهر هنا شرح المعدّة أو المنطقة وتصنيف HSE</div>
+          </div>
+          <button id="close" class="close" type="button">إغلاق</button>
+        </div>
+        <div class="info-body" id="info-body"></div>
+      </section>
+    </section>
+  </main>
+
+  <script defer src="./app.js"></script>
 </body>
 </html>
