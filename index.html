@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GC-22 3D Map + Hazard Zones</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body { margin: 0; overflow: hidden; background: #0b0f14; font-family: Arial, sans-serif; }
+
+    #info {
+      position: absolute;
+      bottom: 20px; left: 20px;
+      width: 340px;
+      background: rgba(0,0,0,0.88);
+      color: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+    }
+    #info h3 { margin-top: 0; color: #4fc3f7; }
+
+    #panel {
+      position: absolute;
+      top: 16px; left: 16px;
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      padding: 12px 12px 10px;
+      border-radius: 10px;
+      width: 260px;
+      user-select: none;
+    }
+    #panel h4 { margin: 0 0 10px; font-size: 14px; color: #d7e7ff; }
+    .row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0; }
+    label { font-size: 13px; opacity: 0.95; }
+    input[type="checkbox"] { transform: scale(1.1); }
+    .hint { margin-top: 8px; font-size: 12px; opacity: 0.75; line-height: 1.35; }
+  </style>
+</head>
+
+<body>
+  <div id="panel">
+    <h4>Layers</h4>
+    <div class="row">
+      <label for="z0">Zone 0</label>
+      <input id="z0" type="checkbox" checked />
+    </div>
+    <div class="row">
+      <label for="z1">Zone 1</label>
+      <input id="z1" type="checkbox" checked />
+    </div>
+    <div class="row">
+      <label for="z2">Zone 2</label>
+      <input id="z2" type="checkbox" checked />
+    </div>
+    <div class="row">
+      <label for="eq">Equipment</label>
+      <input id="eq" type="checkbox" checked />
+    </div>
+
+    <div class="hint">
+      Click equipment or a hazard zone to view details.<br/>
+      Zoom/rotate using touch gestures.
+    </div>
+  </div>
+
+  <div id="info"></div>
+
+  <!-- THREE -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
