@@ -1,4 +1,4 @@
-export function buildZones(scene, zonesData) {
+export function buildZones(THREE, scene, zonesData) {
   const groups = {
     "Zone 0": new THREE.Group(),
     "Zone 1": new THREE.Group(),
@@ -6,7 +6,7 @@ export function buildZones(scene, zonesData) {
   };
 
   for (const z of zonesData) {
-    const grp = polygonMeshFromPoints(z.points, z);
+    const grp = polygonMeshFromPoints(THREE, z.points, z);
     grp.position.y = 0.05;
 
     grp.userData = {
@@ -26,7 +26,7 @@ export function buildZones(scene, zonesData) {
   return groups;
 }
 
-function polygonMeshFromPoints(points01, zone) {
+function polygonMeshFromPoints(THREE, points01, zone) {
   const toWorld = (p) => ({
     x: (p.x - 0.5) * 100,
     z: (p.y - 0.5) * 100
