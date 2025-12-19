@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GC OP-II Intel Training</title>
+  <title>GC OP-II Intel System</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,9 +12,10 @@
       <div class="brand-title">GC OP-II Intel System</div>
       <div class="brand-sub">Training + Scenarios + DCS Simulator + Facility Map</div>
     </div>
+
     <div class="status">
       <span id="scenarioStatus" class="pill">Idle</span>
-      <button id="btnStartScenario" class="btn primary">Start Scenario</button>
+      <button id="btnStartScenario" class="btn primary" type="button">Start Scenario</button>
     </div>
   </header>
 
@@ -22,6 +23,7 @@
     <!-- Left: Facility Map -->
     <section class="panel">
       <h2>Facility Map (2D)</h2>
+
       <div class="map-wrap">
         <svg id="facilityMap" viewBox="0 0 900 520" role="img" aria-label="Facility map">
           <!-- Main Plant -->
@@ -92,6 +94,7 @@
     <div>Training logic based on CRU/TV & Wet Oil facility handouts.</div>
   </footer>
 
+  <!-- IMPORTANT: app.js at the end to ensure DOM exists -->
   <script src="app.js"></script>
 </body>
 </html>
