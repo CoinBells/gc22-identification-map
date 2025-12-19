@@ -1,38 +1,46 @@
-[
-  {
-    "id": "EQ_CONTROL",
-    "name": "CONTROL ROOM",
-    "category": "Building",
-    "purpose": "Operations monitoring and control interface (DCS/ESD).",
-    "hse": ["Access control", "Keep emergency exits clear"],
-    "zone": "Safe / Non-hazardous (typ.)",
-    "pin": { "x": 360, "y": 470 }
-  },
-  {
-    "id": "EQ_DESALTER_A",
-    "name": "TRAIN-A DESALTER",
-    "category": "Process Unit",
-    "purpose": "Remove salts and water from crude oil prior to export.",
-    "hse": ["High voltage (if electrostatic)", "Hot surfaces", "Chemical exposure"],
-    "zone": "Zone 1 (typ.)",
-    "pin": { "x": 650, "y": 210 }
-  },
-  {
-    "id": "EQ_TANK_DUAL",
-    "name": "DUAL TANK",
-    "category": "Storage",
-    "purpose": "Intermediate storage / buffering during processing.",
-    "hse": ["Confined space", "Static electricity precautions"],
-    "zone": "Zone 2 (typ.)",
-    "pin": { "x": 520, "y": 205 }
-  },
-  {
-    "id": "EQ_FIRE_PUMP",
-    "name": "FIRE PUMPS / JOCKEY PUMP",
-    "category": "Firefighting",
-    "purpose": "Provide firewater pressure for hydrants and deluge systems.",
-    "hse": ["Keep area accessible", "No obstruction of firewater lines"],
-    "zone": "Zone 2 (typ.)",
-    "pin": { "x": 560, "y": 525 }
-  }
-]
+{
+  "equipment": [
+    {
+      "id": "C-101",
+      "name": "1st Stage Suction Scrubber",
+      "area": "cru",
+      "function": "Knockout liquids before 1st stage compressors; stabilize suction volume.",
+      "normal": {
+        "pressure": "≈ 2.5–3\" WG (similar to tanks)",
+        "temp": "Ambient (summer ≈ 105°F)"
+      },
+      "alarms": [
+        { "id": "C101_LSHH", "text": "C-101 Level High-High (Trip protection)" }
+      ],
+      "operator_checks": [
+        "Drain Seal Drum / drain logic status",
+        "Fuel gas to seal drum (if applicable)",
+        "Manual drain readiness (if auto drain unavailable)",
+        "Any slugging from upstream tanks/headers"
+      ],
+      "notes": [
+        "Must be kept empty of liquid during operation to protect compressors."
+      ]
+    },
+    {
+      "id": "E-101",
+      "name": "1st Stage Heat Exchanger",
+      "area": "cru",
+      "function": "Cool hot gas after 1st stage from ~220°F to ~120°F before 2nd stage suction.",
+      "normal": { "outlet_temp": "~120°F (typical)" },
+      "alarms": [
+        { "id": "E101_TT_HI", "text": "E-101 Outlet Temp High" }
+      ]
+    },
+    {
+      "id": "C-104",
+      "name": "CRU Discharge Vessel",
+      "area": "cru",
+      "function": "Collect condensate after E-103; separate lean gas to HP system; control discharge pressure.",
+      "normal": { "pressure": "~470 psig" },
+      "alarms": [
+        { "id": "C104_P_HI", "text": "C-104 High Pressure" }
+      ]
+    }
+  ]
+}
