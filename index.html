@@ -1,89 +1,97 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>GC-22 Training Map</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GC OP-II Intel Training</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="badge">GC-22</div>
-      <div class="titles">
-        <div class="t1">Interactive Identification Map</div>
-        <div class="t2">Training / HSE / Equipment Overview</div>
-      </div>
+      <div class="brand-title">GC OP-II Intel System</div>
+      <div class="brand-sub">Training + Scenarios + DCS Simulator + Facility Map</div>
     </div>
-
-    <div class="search">
-      <input id="search" type="search" placeholder="ابحث عن معدّة… (مثال: Desalter, Tank, Control Room)" />
-      <button id="reset" type="button">Reset</button>
+    <div class="status">
+      <span id="scenarioStatus" class="pill">Idle</span>
+      <button id="btnStartScenario" class="btn primary">Start Scenario</button>
     </div>
   </header>
 
   <main class="layout">
-    <aside class="sidebar">
-      <section class="card">
-        <h3>Layers</h3>
+    <!-- Left: Facility Map -->
+    <section class="panel">
+      <h2>Facility Map (2D)</h2>
+      <div class="map-wrap">
+        <svg id="facilityMap" viewBox="0 0 900 520" role="img" aria-label="Facility map">
+          <!-- Main Plant -->
+          <rect class="zone" data-area="main_plant" x="40" y="60" width="220" height="140" rx="12"></rect>
+          <text class="label" x="60" y="95">Main Plant</text>
+          <text class="label small" x="60" y="120">Wet Oil / DDP</text>
 
-        <label class="chk">
-          <input type="checkbox" id="layer-eq" checked />
-          <span>Equipment</span>
-        </label>
+          <!-- Tanks -->
+          <rect class="zone" data-area="tanks" x="310" y="40" width="260" height="180" rx="12"></rect>
+          <text class="label" x="330" y="75">Wet / Dual / Dry Tanks</text>
+          <text class="label small" x="330" y="100">TV Header / Blanketing</text>
 
-        <label class="chk">
-          <input type="checkbox" id="layer-z0" checked />
-          <span>Zone 0</span>
-        </label>
+          <!-- CRU -->
+          <rect class="zone" data-area="cru" x="310" y="260" width="260" height="210" rx="12"></rect>
+          <text class="label" x="330" y="295">CRU (3-Stage)</text>
+          <text class="label small" x="330" y="320">C-101…C-104 / E-101…E-103</text>
 
-        <label class="chk">
-          <input type="checkbox" id="layer-z1" checked />
-          <span>Zone 1</span>
-        </label>
+          <!-- Condensate -->
+          <rect class="zone" data-area="condensate" x="610" y="260" width="250" height="140" rx="12"></rect>
+          <text class="label" x="630" y="295">Condensate</text>
+          <text class="label small" x="630" y="320">G-101 / G-102</text>
 
-        <label class="chk">
-          <input type="checkbox" id="layer-z2" checked />
-          <span>Zone 2</span>
-        </label>
+          <!-- Export -->
+          <rect class="zone" data-area="export" x="610" y="60" width="250" height="140" rx="12"></rect>
+          <text class="label" x="630" y="95">LPG / HP System</text>
+          <text class="label small" x="630" y="120">Lean Gas / Transit</text>
 
-        <div class="note">
-          اضغط على أي معدّة أو منطقة خطرة لعرض التفاصيل.
-        </div>
-      </section>
-
-      <section class="card">
-        <h3>Equipment List</h3>
-        <div id="list" class="list"></div>
-      </section>
-    </aside>
-
-    <section class="stage">
-      <div class="viewport" id="viewport" aria-label="Map viewport">
-        <!-- Base map -->
-        <img id="map" src="./assets/gc22-map.jpg" alt="GC-22 map" />
-
-        <!-- SVG overlay -->
-        <svg id="overlay" viewBox="0 0 1000 600" preserveAspectRatio="none"></svg>
-
-        <!-- Tooltip -->
-        <div id="tip" class="tip" hidden></div>
+          <!-- Connectors -->
+          <path class="pipe" d="M260 130 L310 130" />
+          <path class="pipe" d="M440 220 L440 260" />
+          <path class="pipe" d="M570 350 L610 330" />
+          <path class="pipe" d="M570 120 L610 120" />
+        </svg>
       </div>
 
-      <section class="info" id="info">
-        <div class="info-head">
-          <div>
-            <div class="info-title" id="info-title">اختر عنصرًا من الخريطة</div>
-            <div class="info-sub" id="info-sub">سيظهر هنا شرح المعدّة أو المنطقة وتصنيف HSE</div>
-          </div>
-          <button id="close" class="close" type="button">إغلاق</button>
+      <div class="info" id="areaInfo">
+        <div class="info-title">Click an area to view details.</div>
+        <div class="info-body">This map is training-oriented and links to DCS panels, equipment, and scenarios.</div>
+      </div>
+    </section>
+
+    <!-- Right: DCS + Scenario -->
+    <section class="panel">
+      <h2>DCS Simulator</h2>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Key Tags</div>
+          <div id="tagList" class="taglist"></div>
         </div>
-        <div class="info-body" id="info-body"></div>
-      </section>
+
+        <div class="card">
+          <div class="card-title">Alarms</div>
+          <div id="alarmList" class="alarms"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Scenario Decision</div>
+        <div id="scenarioBox" class="scenario">
+          <div class="muted">Press “Start Scenario” to begin training event.</div>
+        </div>
+      </div>
     </section>
   </main>
 
-  <script defer src="./app.js"></script>
+  <footer class="footer">
+    <div>Training logic based on CRU/TV & Wet Oil facility handouts.</div>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
