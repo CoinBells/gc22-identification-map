@@ -1,0 +1,34 @@
+{
+  "curriculum": [
+    {
+      "module": "M0",
+      "title": "Operator Mindset & System Thinking",
+      "outcomes": ["Read plant as one system", "Trend-based thinking vs single alarm"]
+    },
+    {
+      "module": "M1",
+      "title": "Wet Oil & Tanks Fundamentals",
+      "outcomes": ["Wet/Dual/Dry tank roles", "TV generation impact on CRU suction"]
+    },
+    {
+      "module": "M2",
+      "title": "TV Gas System",
+      "outcomes": ["Header, blanketing, butterfly control, flare diversion logic"]
+    },
+    {
+      "module": "M3",
+      "title": "CRU 3-Stage Compression",
+      "outcomes": ["C-101/2/3/4 roles", "E-101/2/3 cooling logic", "Trips and protection intent"]
+    },
+    {
+      "module": "M4",
+      "title": "Condensate Pumps & Export",
+      "outcomes": ["G-101/G-102 duties", "Extra Dump logic", "Minimum flow protection"]
+    },
+    {
+      "module": "M5",
+      "title": "DCS Alarms, Trends, and Safe Actions",
+      "outcomes": ["Alarm → Hypothesis → Verify → Act", "Avoid unsafe resets"]
+    }
+  ]
+}
