@@ -1,11 +1,11 @@
-const $ = (sel) => document.querySelector(sel);
+// ===== Utilities =====
+function qs(sel){ return document.querySelector(sel); }
+function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
 let DB = {
   facility: null,
-  equipment: null,
   tags: null,
-  scenarios: null,
-  curriculum: null
+  scenarios: null
 };
 
 let state = {
@@ -20,13 +20,14 @@ let state = {
 };
 
 async function loadJSON(path){
-  const res = await fetch(path);
-  if(!res.ok) throw new Error(`Failed to load ${path}`);
+  const res = await fetch(path, { cache: "no-store" });
+  if(!res.ok) throw new Error(`Failed to load ${path} (${res.status})`);
   return await res.json();
 }
 
 function setPill(text, kind="idle"){
-  const el = $("#scenarioStatus");
+  const el = qs("#scenarioStatus");
+  if(!el) return;
   el.textContent = text;
   el.style.borderColor = "var(--line)";
   el.style.color = "var(--muted)";
@@ -34,9 +35,26 @@ function setPill(text, kind="idle"){
   if(kind === "bad"){ el.style.borderColor = "rgba(255,92,92,.5)"; el.style.color = "var(--text)"; }
 }
 
+function formatValue(v, unit){
+  if(unit === "state") return v ? "ACTIVE" : "NORMAL";
+  if(typeof v === "number"){
+    if(unit === "inWG") return `${v.toFixed(1)} inWG`;
+    if(unit === "psig") return `${v.toFixed(0)} psig`;
+    if(unit === "F") return `${v.toFixed(0)} °F`;
+  }
+  return `${v}`;
+}
+
 function renderTags(){
-  const list = $("#tagList");
+  const list = qs("#tagList");
+  if(!list) return;
   list.innerHTML = "";
+
+  if(!DB.tags || !DB.tags.tags || DB.tags.tags.length === 0){
+    list.innerHTML = `<div class="muted">No tags loaded.</div>`;
+    return;
+  }
+
   DB.tags.tags.forEach(t => {
     const val = state.tagValues[t.tag];
     const div = document.createElement("div");
@@ -52,23 +70,16 @@ function renderTags(){
   });
 }
 
-function formatValue(v, unit){
-  if(unit === "state") return v ? "ACTIVE" : "NORMAL";
-  if(typeof v === "number"){
-    if(unit === "inWG") return `${v.toFixed(1)} inWG`;
-    if(unit === "psig") return `${v.toFixed(0)} psig`;
-    if(unit === "F") return `${v.toFixed(0)} °F`;
-  }
-  return `${v}`;
-}
-
 function renderAlarms(){
-  const list = $("#alarmList");
+  const list = qs("#alarmList");
+  if(!list) return;
+
   list.innerHTML = "";
   if(state.alarms.length === 0){
     list.innerHTML = `<div class="muted">No active alarms.</div>`;
     return;
   }
+
   state.alarms.forEach(a => {
     const div = document.createElement("div");
     div.className = `alarm ${a.severity === "HIGH" ? "bad" : ""}`;
@@ -81,8 +92,9 @@ function renderAlarms(){
 }
 
 function setAlarm(code, text, severity="MED"){
-  const exists = state.alarms.find(x => x.code === code);
-  if(!exists) state.alarms.push({code, text, severity});
+  if(!state.alarms.find(x => x.code === code)){
+    state.alarms.push({code, text, severity});
+  }
   renderAlarms();
 }
 
@@ -91,32 +103,21 @@ function clearAlarm(code){
   renderAlarms();
 }
 
-function bindMap(){
-  const map = $("#facilityMap");
-  map.querySelectorAll(".zone").forEach(z => {
-    z.addEventListener("click", () => {
-      const areaId = z.getAttribute("data-area");
-      const area = DB.facility.areas.find(a => a.id === areaId);
-      const info = $("#areaInfo");
-      info.querySelector(".info-title").textContent = area.name;
-      info.querySelector(".info-body").textContent =
-        areaId === "cru"
-          ? "CRU: 3-stage compression with scrubbers, exchangers, discharge vessel, and protective trips. Click Start Scenario to train abnormal events."
-          : "This area is linked to training modules, tags, and scenarios (expandable).";
-    });
-  });
-}
-
 function renderScenarioBoxIdle(){
-  $("#scenarioBox").innerHTML = `<div class="muted">Press “Start Scenario” to begin training event.</div>`;
+  const box = qs("#scenarioBox");
+  if(!box) return;
+  box.innerHTML = `<div class="muted">Press “Start Scenario” to begin training event.</div>`;
 }
 
 function renderDecision(dp, onPick){
-  const box = $("#scenarioBox");
+  const box = qs("#scenarioBox");
+  if(!box) return;
+
   box.innerHTML = `
     <div style="font-weight:900; font-size:14px">${dp.question}</div>
     <div class="muted" style="margin-top:6px">Choose the safest and most technically correct action.</div>
   `;
+
   dp.options.forEach(opt => {
     const div = document.createElement("div");
     div.className = "option";
@@ -126,8 +127,10 @@ function renderDecision(dp, onPick){
   });
 }
 
-function renderResult(opt, bestAnswer){
-  const box = $("#scenarioBox");
+function renderResult(opt, bestAnswer, checklist){
+  const box = qs("#scenarioBox");
+  if(!box) return;
+
   const good = opt.id === bestAnswer;
   const cls = good ? "good" : "bad";
   box.innerHTML += `
@@ -136,78 +139,154 @@ function renderResult(opt, bestAnswer){
       <div class="muted" style="margin-top:6px">${opt.impact}</div>
     </div>
   `;
+
+  if(good && Array.isArray(checklist)){
+    box.innerHTML += `
+      <div class="result good" style="margin-top:12px">
+        <div style="font-weight:900">Recovery Checklist</div>
+        <ul style="margin:8px 0 0 18px; color: var(--muted); line-height:1.5">
+          ${checklist.map(x => `<li>${x}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+  }
 }
 
+function bindMap(){
+  const map = qs("#facilityMap");
+  const info = qs("#areaInfo");
+  if(!map || !info) return;
+
+  map.querySelectorAll(".zone").forEach(z => {
+    z.addEventListener("click", () => {
+      const areaId = z.getAttribute("data-area");
+      const area = DB.facility?.areas?.find(a => a.id === areaId);
+
+      const titleEl = info.querySelector(".info-title");
+      const bodyEl = info.querySelector(".info-body");
+
+      if(!area){
+        titleEl.textContent = "Unknown area";
+        bodyEl.textContent = "Area data not loaded.";
+        return;
+      }
+
+      titleEl.textContent = area.name;
+
+      if(areaId === "cru"){
+        bodyEl.textContent =
+          "CRU: 3-stage compression with scrubbers, exchangers, discharge vessel, and protective trips. Use Start Scenario to train abnormal events.";
+      } else if(areaId === "tanks"){
+        bodyEl.textContent =
+          "Tanks/TV: Wet/Dual/Dry tank behavior affects TV header stability, which directly impacts CRU suction conditions.";
+      } else {
+        bodyEl.textContent =
+          "This area is linked to modules, tags, and scenarios (expandable).";
+      }
+    });
+  });
+}
+
+// ===== Scenario =====
 async function startScenario(){
-  const scn = DB.scenarios.scenarios.find(s => s.id === "SCN_C101_LSHH_TRIP");
-  state.runningScenarioId = scn.id;
-  setPill(`Running: ${scn.title}`, "run");
+  try{
+    // Basic guard
+    if(!DB.scenarios?.scenarios?.length){
+      throw new Error("Scenarios not loaded. Check /data/scenarios.json");
+    }
 
-  // Trigger timeline event 0 immediately
-  const e0 = scn.timeline[0];
-  Object.assign(state.tagValues, e0.signals);
-  state.tagValues.LSHH_C101 = 1;
-  setAlarm("C101_LSHH", "C-101 Level High-High (Trip protection)", "HIGH");
+    const scn = DB.scenarios.scenarios.find(s => s.id === "SCN_C101_LSHH_TRIP");
+    if(!scn) throw new Error("Scenario SCN_C101_LSHH_TRIP not found in scenarios.json");
 
-  renderTags();
+    // Reset state for clean run
+    state.alarms = [];
+    renderAlarms();
 
-  // After 30s simulated quickly (2s) apply trip
-  setTimeout(() => {
-    const e1 = scn.timeline[1];
-    Object.assign(state.tagValues, e1.signals);
-    setAlarm("CRU_TRIP", "CRU protective trip after C-101 LSHH", "HIGH");
+    state.runningScenarioId = scn.id;
+    setPill(`Running: ${scn.title}`, "run");
+
+    // Timeline event 0
+    const e0 = scn.timeline[0];
+    Object.assign(state.tagValues, e0.signals);
+    state.tagValues.LSHH_C101 = 1;
+    setAlarm("C101_LSHH", "C-101 Level High-High (Trip protection)", "HIGH");
     renderTags();
-  }, 2000);
 
-  // Decision point
-  const dp1 = scn.decisionPoints[0];
-  renderDecision(dp1, (opt) => {
-    renderResult(opt, dp1.bestAnswer);
+    // Timeline event 1 after 2 seconds (simulation)
+    setTimeout(() => {
+      const e1 = scn.timeline[1];
+      Object.assign(state.tagValues, e1.signals);
+      setAlarm("CRU_TRIP", "CRU protective trip after C-101 LSHH", "HIGH");
+      renderTags();
+    }, 2000);
 
-    if(opt.id === dp1.bestAnswer){
-      // Show recovery checklist
-      $("#scenarioBox").innerHTML += `
-        <div class="result good" style="margin-top:12px">
-          <div style="font-weight:900">Recovery Checklist</div>
-          <ul style="margin:8px 0 0 18px; color: var(--muted); line-height:1.5">
-            ${scn.recoveryChecklist.map(x => `<li>${x}</li>`).join("")}
-          </ul>
-        </div>
-      `;
-    } else {
-      $("#scenarioBox").innerHTML += `
-        <div class="result bad" style="margin-top:12px">
-          <div style="font-weight:900">Operator Note</div>
+    // Decision point
+    const dp1 = scn.decisionPoints[0];
+    renderDecision(dp1, (opt) => {
+      renderResult(opt, dp1.bestAnswer, scn.recoveryChecklist);
+    });
+
+  }catch(err){
+    console.error(err);
+    setPill("Error", "bad");
+    const box = qs("#scenarioBox");
+    if(box){
+      box.innerHTML = `
+        <div class="result bad">
+          <div style="font-weight:900">Scenario Error</div>
+          <div class="muted" style="margin-top:6px">${err.message}</div>
           <div class="muted" style="margin-top:6px">
-            Do not rush reset. Verify the vessel is free of liquid and the drain path is functioning before attempting restart.
+            Tip: Ensure the data files exist under <b>/data</b> and paths are correct (case-sensitive).
           </div>
         </div>
       `;
     }
-  });
+  }
 }
 
+// ===== Init =====
 async function init(){
+  // Ensure the DOM exists (extra safety)
+  const btn = qs("#btnStartScenario");
+  if(!btn){
+    console.error("Start button not found: #btnStartScenario");
+    return;
+  }
+
+  // IMPORTANT: bind click reliably
+  btn.addEventListener("click", startScenario);
+
   try{
-    DB.facility = await loadJSON("data/facility.json");
-    DB.equipment = await loadJSON("data/equipment.json");
-    DB.tags = await loadJSON("data/tags.json");
-    DB.scenarios = await loadJSON("data/scenarios.json");
-    DB.curriculum = await loadJSON("data/curriculum.json");
+    // Load DB
+    DB.facility = await loadJSON("./data/facility.json");
+    DB.tags = await loadJSON("./data/tags.json");
+    DB.scenarios = await loadJSON("./data/scenarios.json");
 
     bindMap();
     renderTags();
     renderAlarms();
     renderScenarioBoxIdle();
 
-    $("#btnStartScenario").addEventListener("click", startScenario);
+    // Optional: show loaded status in console
+    console.log("DB loaded OK", DB);
+
   }catch(err){
     console.error(err);
-    $("#scenarioBox").innerHTML = `<div class="result bad">
-      <div style="font-weight:900">Load Error</div>
-      <div class="muted" style="margin-top:6px">${err.message}</div>
-    </div>`;
+    setPill("Load Error", "bad");
+    const box = qs("#scenarioBox");
+    if(box){
+      box.innerHTML = `
+        <div class="result bad">
+          <div style="font-weight:900">Load Error</div>
+          <div class="muted" style="margin-top:6px">${err.message}</div>
+          <div class="muted" style="margin-top:6px">
+            Check that folder <b>data</b> exists and file names match exactly.
+          </div>
+        </div>
+      `;
+    }
   }
 }
 
-init();
+// Run after DOM is ready
+document.addEventListener("DOMContentLoaded", init);
