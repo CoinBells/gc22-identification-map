@@ -1,0 +1,8 @@
+{
+  "tags": [
+    { "tag": "PT_C101", "name": "C-101 Pressure", "unit": "inWG", "equip": "C-101" },
+    { "tag": "LSHH_C101", "name": "C-101 Level High-High", "unit": "state", "equip": "C-101" },
+    { "tag": "TT_E101_OUT", "name": "E-101 Outlet Temperature", "unit": "F", "equip": "E-101" },
+    { "tag": "PT_C104", "name": "C-104 Pressure", "unit": "psig", "equip": "C-104" }
+  ]
+}
