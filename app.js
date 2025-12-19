@@ -1,277 +1,213 @@
-const overlay = document.getElementById('overlay');
-const tip = document.getElementById('tip');
+const $ = (sel) => document.querySelector(sel);
 
-const infoTitle = document.getElementById('info-title');
-const infoSub = document.getElementById('info-sub');
-const infoBody = document.getElementById('info-body');
-const closeBtn = document.getElementById('close');
+let DB = {
+  facility: null,
+  equipment: null,
+  tags: null,
+  scenarios: null,
+  curriculum: null
+};
 
-const listEl = document.getElementById('list');
-const searchEl = document.getElementById('search');
-const resetBtn = document.getElementById('reset');
+let state = {
+  runningScenarioId: null,
+  tagValues: {
+    PT_C101: 2.7,
+    LSHH_C101: 0,
+    TT_E101_OUT: 120,
+    PT_C104: 470
+  },
+  alarms: []
+};
 
-const layerEq = document.getElementById('layer-eq');
-const layerZ0 = document.getElementById('layer-z0');
-const layerZ1 = document.getElementById('layer-z1');
-const layerZ2 = document.getElementById('layer-z2');
-
-let ZONES = [];
-let EQUIPMENT = [];
-
-function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-
-function zoneColor(z){
-  if (z === "Zone 0") return { fill:"rgba(255,45,45,.22)", stroke:"rgba(255,45,45,.85)" };
-  if (z === "Zone 1") return { fill:"rgba(255,165,0,.20)", stroke:"rgba(255,165,0,.85)" };
-  return { fill:"rgba(255,240,0,.18)", stroke:"rgba(255,240,0,.75)" };
+async function loadJSON(path){
+  const res = await fetch(path);
+  if(!res.ok) throw new Error(`Failed to load ${path}`);
+  return await res.json();
 }
 
-function clearOverlay(){
-  while (overlay.firstChild) overlay.removeChild(overlay.firstChild);
+function setPill(text, kind="idle"){
+  const el = $("#scenarioStatus");
+  el.textContent = text;
+  el.style.borderColor = "var(--line)";
+  el.style.color = "var(--muted)";
+  if(kind === "run"){ el.style.borderColor = "rgba(74,163,255,.5)"; el.style.color = "var(--text)"; }
+  if(kind === "bad"){ el.style.borderColor = "rgba(255,92,92,.5)"; el.style.color = "var(--text)"; }
 }
 
-function drawZones(){
-  ZONES.forEach(z => {
-    const { fill, stroke } = zoneColor(z.zone);
-    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
-    g.dataset.type = "zone";
-    g.dataset.id = z.id;
-    g.classList.add("zone");
-
-    let shapeEl;
-
-    if (z.shape.type === "rect"){
-      shapeEl = document.createElementNS("http://www.w3.org/2000/svg","rect");
-      shapeEl.setAttribute("x", z.shape.x);
-      shapeEl.setAttribute("y", z.shape.y);
-      shapeEl.setAttribute("width", z.shape.w);
-      shapeEl.setAttribute("height", z.shape.h);
-      shapeEl.setAttribute("rx", 10);
-    } else if (z.shape.type === "circle"){
-      shapeEl = document.createElementNS("http://www.w3.org/2000/svg","circle");
-      shapeEl.setAttribute("cx", z.shape.cx);
-      shapeEl.setAttribute("cy", z.shape.cy);
-      shapeEl.setAttribute("r", z.shape.r);
-    }
-
-    shapeEl.setAttribute("fill", fill);
-    shapeEl.setAttribute("stroke", stroke);
-    shapeEl.setAttribute("stroke-width", 3);
-    shapeEl.style.cursor = "pointer";
-
-    g.appendChild(shapeEl);
-    overlay.appendChild(g);
+function renderTags(){
+  const list = $("#tagList");
+  list.innerHTML = "";
+  DB.tags.tags.forEach(t => {
+    const val = state.tagValues[t.tag];
+    const div = document.createElement("div");
+    div.className = "tag";
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:800">${t.tag}</div>
+        <div class="name">${t.name}</div>
+      </div>
+      <div class="value">${formatValue(val, t.unit)}</div>
+    `;
+    list.appendChild(div);
   });
 }
 
-function drawEquipmentPins(){
-  EQUIPMENT.forEach(eq => {
-    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
-    g.dataset.type = "eq";
-    g.dataset.id = eq.id;
-    g.classList.add("eq");
+function formatValue(v, unit){
+  if(unit === "state") return v ? "ACTIVE" : "NORMAL";
+  if(typeof v === "number"){
+    if(unit === "inWG") return `${v.toFixed(1)} inWG`;
+    if(unit === "psig") return `${v.toFixed(0)} psig`;
+    if(unit === "F") return `${v.toFixed(0)} °F`;
+  }
+  return `${v}`;
+}
 
-    const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
-    c.setAttribute("cx", eq.pin.x);
-    c.setAttribute("cy", eq.pin.y);
-    c.setAttribute("r", 10);
-    c.setAttribute("fill", "#4fc3f7");
-    c.setAttribute("stroke", "rgba(0,0,0,.55)");
-    c.setAttribute("stroke-width", 3);
-    c.style.cursor = "pointer";
-
-    const dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
-    dot.setAttribute("cx", eq.pin.x);
-    dot.setAttribute("cy", eq.pin.y);
-    dot.setAttribute("r", 4);
-    dot.setAttribute("fill", "#0b0f14");
-
-    g.appendChild(c);
-    g.appendChild(dot);
-    overlay.appendChild(g);
+function renderAlarms(){
+  const list = $("#alarmList");
+  list.innerHTML = "";
+  if(state.alarms.length === 0){
+    list.innerHTML = `<div class="muted">No active alarms.</div>`;
+    return;
+  }
+  state.alarms.forEach(a => {
+    const div = document.createElement("div");
+    div.className = `alarm ${a.severity === "HIGH" ? "bad" : ""}`;
+    div.innerHTML = `
+      <div class="title">${a.code}</div>
+      <div class="desc">${a.text}</div>
+    `;
+    list.appendChild(div);
   });
 }
 
-function render(){
-  clearOverlay();
-  overlay.setAttribute("viewBox", "0 0 1000 600");
-
-  // Zones by layer
-  if (layerZ0.checked) ZONES.filter(z => z.zone==="Zone 0").forEach(z => {});
-  if (layerZ1.checked) ZONES.filter(z => z.zone==="Zone 1").forEach(z => {});
-  if (layerZ2.checked) ZONES.filter(z => z.zone==="Zone 2").forEach(z => {});
-
-  // draw zones in order 2 -> 1 -> 0 (so 0 is top)
-  if (layerZ2.checked) ZONES.filter(z => z.zone==="Zone 2").forEach(z=>{});
-  drawZonesFiltered();
-
-  // equipment
-  if (layerEq.checked) drawEquipmentPins();
+function setAlarm(code, text, severity="MED"){
+  const exists = state.alarms.find(x => x.code === code);
+  if(!exists) state.alarms.push({code, text, severity});
+  renderAlarms();
 }
 
-function drawZonesFiltered(){
-  const order = ["Zone 2","Zone 1","Zone 0"];
-  order.forEach(zn=>{
-    if ((zn==="Zone 0" && !layerZ0.checked) || (zn==="Zone 1" && !layerZ1.checked) || (zn==="Zone 2" && !layerZ2.checked)) return;
-    ZONES.filter(z=>z.zone===zn).forEach(z=>{
-      const { fill, stroke } = zoneColor(z.zone);
+function clearAlarm(code){
+  state.alarms = state.alarms.filter(x => x.code !== code);
+  renderAlarms();
+}
 
-      const g = document.createElementNS("http://www.w3.org/2000/svg","g");
-      g.dataset.type="zone"; g.dataset.id=z.id;
-
-      let shapeEl;
-      if (z.shape.type==="rect"){
-        shapeEl=document.createElementNS("http://www.w3.org/2000/svg","rect");
-        shapeEl.setAttribute("x", z.shape.x);
-        shapeEl.setAttribute("y", z.shape.y);
-        shapeEl.setAttribute("width", z.shape.w);
-        shapeEl.setAttribute("height", z.shape.h);
-        shapeEl.setAttribute("rx", 10);
-      } else {
-        shapeEl=document.createElementNS("http://www.w3.org/2000/svg","circle");
-        shapeEl.setAttribute("cx", z.shape.cx);
-        shapeEl.setAttribute("cy", z.shape.cy);
-        shapeEl.setAttribute("r", z.shape.r);
-      }
-      shapeEl.setAttribute("fill", fill);
-      shapeEl.setAttribute("stroke", stroke);
-      shapeEl.setAttribute("stroke-width", 3);
-      shapeEl.style.cursor="pointer";
-      g.appendChild(shapeEl);
-      overlay.appendChild(g);
+function bindMap(){
+  const map = $("#facilityMap");
+  map.querySelectorAll(".zone").forEach(z => {
+    z.addEventListener("click", () => {
+      const areaId = z.getAttribute("data-area");
+      const area = DB.facility.areas.find(a => a.id === areaId);
+      const info = $("#areaInfo");
+      info.querySelector(".info-title").textContent = area.name;
+      info.querySelector(".info-body").textContent =
+        areaId === "cru"
+          ? "CRU: 3-stage compression with scrubbers, exchangers, discharge vessel, and protective trips. Click Start Scenario to train abnormal events."
+          : "This area is linked to training modules, tags, and scenarios (expandable).";
     });
   });
 }
 
-function showTooltip(x,y,html){
-  tip.innerHTML = html;
-  tip.hidden = false;
-  tip.style.left = Math.min(x+12, window.innerWidth-280) + "px";
-  tip.style.top  = Math.max(y-10, 12) + "px";
+function renderScenarioBoxIdle(){
+  $("#scenarioBox").innerHTML = `<div class="muted">Press “Start Scenario” to begin training event.</div>`;
 }
 
-function hideTooltip(){
-  tip.hidden = true;
+function renderDecision(dp, onPick){
+  const box = $("#scenarioBox");
+  box.innerHTML = `
+    <div style="font-weight:900; font-size:14px">${dp.question}</div>
+    <div class="muted" style="margin-top:6px">Choose the safest and most technically correct action.</div>
+  `;
+  dp.options.forEach(opt => {
+    const div = document.createElement("div");
+    div.className = "option";
+    div.innerHTML = `<div style="font-weight:800">${opt.id}) ${opt.text}</div>`;
+    div.addEventListener("click", () => onPick(opt));
+    box.appendChild(div);
+  });
 }
 
-function setInfoTitle(title, sub){
-  infoTitle.textContent = title || "—";
-  infoSub.textContent = sub || "";
-}
-
-function setInfoBody(html){
-  infoBody.innerHTML = html || "";
-}
-
-function openInfo(data, type){
-  if (type === "zone"){
-    setInfoTitle(data.name, `${data.zone} • Hazardous Area Classification`);
-    setInfoBody(`
-      <div class="k">Purpose</div>
-      <div>${esc(data.purpose || "-")}</div>
-      <div class="k">HSE</div>
-      <ul>${(data.hse||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
-    `);
-  } else {
-    setInfoTitle(data.name, `${data.category || "Equipment"} • ${data.zone || ""}`);
-    setInfoBody(`
-      <div class="k">Purpose</div>
-      <div>${esc(data.purpose || "-")}</div>
-      <div class="k">HSE</div>
-      <ul>${(data.hse||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
-      <div class="k">ID</div>
-      <div>${esc(data.id)}</div>
-    `);
-  }
-}
-
-closeBtn.addEventListener('click', () => {
-  setInfoTitle("اختر عنصرًا من الخريطة", "سيظهر هنا شرح المعدّة أو المنطقة وتصنيف HSE");
-  setInfoBody("");
-});
-
-function rebuildList(filterText=""){
-  const q = filterText.trim().toLowerCase();
-  const items = EQUIPMENT.filter(e => !q || (e.name||"").toLowerCase().includes(q) || (e.category||"").toLowerCase().includes(q));
-  listEl.innerHTML = items.map(e => `
-    <div class="item" data-id="${esc(e.id)}">
-      <div class="name">${esc(e.name)}</div>
-      <div class="meta">${esc(e.category||"")} • ${esc(e.zone||"")}</div>
+function renderResult(opt, bestAnswer){
+  const box = $("#scenarioBox");
+  const good = opt.id === bestAnswer;
+  const cls = good ? "good" : "bad";
+  box.innerHTML += `
+    <div class="result ${cls}">
+      <div style="font-weight:900">${good ? "Correct" : "Not Recommended"}</div>
+      <div class="muted" style="margin-top:6px">${opt.impact}</div>
     </div>
-  `).join("");
+  `;
+}
 
-  listEl.querySelectorAll('.item').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      const id = el.dataset.id;
-      const data = EQUIPMENT.find(x=>x.id===id);
-      if (data) openInfo(data,"eq");
-    });
+async function startScenario(){
+  const scn = DB.scenarios.scenarios.find(s => s.id === "SCN_C101_LSHH_TRIP");
+  state.runningScenarioId = scn.id;
+  setPill(`Running: ${scn.title}`, "run");
+
+  // Trigger timeline event 0 immediately
+  const e0 = scn.timeline[0];
+  Object.assign(state.tagValues, e0.signals);
+  state.tagValues.LSHH_C101 = 1;
+  setAlarm("C101_LSHH", "C-101 Level High-High (Trip protection)", "HIGH");
+
+  renderTags();
+
+  // After 30s simulated quickly (2s) apply trip
+  setTimeout(() => {
+    const e1 = scn.timeline[1];
+    Object.assign(state.tagValues, e1.signals);
+    setAlarm("CRU_TRIP", "CRU protective trip after C-101 LSHH", "HIGH");
+    renderTags();
+  }, 2000);
+
+  // Decision point
+  const dp1 = scn.decisionPoints[0];
+  renderDecision(dp1, (opt) => {
+    renderResult(opt, dp1.bestAnswer);
+
+    if(opt.id === dp1.bestAnswer){
+      // Show recovery checklist
+      $("#scenarioBox").innerHTML += `
+        <div class="result good" style="margin-top:12px">
+          <div style="font-weight:900">Recovery Checklist</div>
+          <ul style="margin:8px 0 0 18px; color: var(--muted); line-height:1.5">
+            ${scn.recoveryChecklist.map(x => `<li>${x}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+    } else {
+      $("#scenarioBox").innerHTML += `
+        <div class="result bad" style="margin-top:12px">
+          <div style="font-weight:900">Operator Note</div>
+          <div class="muted" style="margin-top:6px">
+            Do not rush reset. Verify the vessel is free of liquid and the drain path is functioning before attempting restart.
+          </div>
+        </div>
+      `;
+    }
   });
 }
 
-overlay.addEventListener('mousemove', (ev)=>{
-  const target = ev.target.closest("g");
-  if (!target) return hideTooltip();
+async function init(){
+  try{
+    DB.facility = await loadJSON("data/facility.json");
+    DB.equipment = await loadJSON("data/equipment.json");
+    DB.tags = await loadJSON("data/tags.json");
+    DB.scenarios = await loadJSON("data/scenarios.json");
+    DB.curriculum = await loadJSON("data/curriculum.json");
 
-  const type = target.dataset.type;
-  const id = target.dataset.id;
+    bindMap();
+    renderTags();
+    renderAlarms();
+    renderScenarioBoxIdle();
 
-  if (type === "zone"){
-    const z = ZONES.find(x=>x.id===id);
-    if (!z) return hideTooltip();
-    showTooltip(ev.clientX, ev.clientY, `<b>${esc(z.name)}</b><br><span style="opacity:.8">${esc(z.zone)}</span>`);
-  } else if (type === "eq"){
-    const e = EQUIPMENT.find(x=>x.id===id);
-    if (!e) return hideTooltip();
-    showTooltip(ev.clientX, ev.clientY, `<b>${esc(e.name)}</b><br><span style="opacity:.8">${esc(e.category||"")}</span>`);
+    $("#btnStartScenario").addEventListener("click", startScenario);
+  }catch(err){
+    console.error(err);
+    $("#scenarioBox").innerHTML = `<div class="result bad">
+      <div style="font-weight:900">Load Error</div>
+      <div class="muted" style="margin-top:6px">${err.message}</div>
+    </div>`;
   }
-});
+}
 
-overlay.addEventListener('mouseleave', hideTooltip);
-
-overlay.addEventListener('click', (ev)=>{
-  const target = ev.target.closest("g");
-  if (!target) return;
-
-  const type = target.dataset.type;
-  const id = target.dataset.id;
-
-  if (type === "zone"){
-    const z = ZONES.find(x=>x.id===id);
-    if (z) openInfo(z, "zone");
-  } else if (type === "eq"){
-    const e = EQUIPMENT.find(x=>x.id===id);
-    if (e) openInfo(e, "eq");
-  }
-});
-
-searchEl.addEventListener('input', ()=>{
-  rebuildList(searchEl.value);
-});
-
-resetBtn.addEventListener('click', ()=>{
-  searchEl.value = "";
-  layerEq.checked = true;
-  layerZ0.checked = true;
-  layerZ1.checked = true;
-  layerZ2.checked = true;
-  render();
-  rebuildList("");
-});
-
-[layerEq, layerZ0, layerZ1, layerZ2].forEach(el => el.addEventListener('change', render));
-
-Promise.all([
-  fetch('./data/zones.json').then(r=>r.json()),
-  fetch('./data/equipment.json').then(r=>r.json())
-]).then(([zones, equipment])=>{
-  ZONES = zones;
-  EQUIPMENT = equipment;
-
-  render();
-  rebuildList("");
-}).catch(err=>{
-  console.error(err);
-  setInfoTitle("خطأ تحميل البيانات", "تحقق من مجلد data واسم الملفات");
-  setInfoBody(`<pre style="white-space:pre-wrap">${esc(err?.message || err)}</pre>`);
-});
+init();
