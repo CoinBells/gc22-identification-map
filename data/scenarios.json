@@ -1,0 +1,59 @@
+{
+  "scenarios": [
+    {
+      "id": "SCN_C101_LSHH_TRIP",
+      "title": "CRU Trip due to C-101 Level High-High",
+      "difficulty": "OP-II",
+      "learningObjectives": [
+        "Differentiate drain failure vs upstream slugging",
+        "Understand why liquid carryover damages reciprocating compressor valves",
+        "Apply safe recovery sequence without rushing reset"
+      ],
+      "timeline": [
+        {
+          "t": 0,
+          "event": "Alarm appears: C-101 LSHH",
+          "signals": { "LSHH_C101": 1, "PT_C101": 3.0, "TT_E101_OUT": 120 }
+        },
+        {
+          "t": 30,
+          "event": "CRU trips (protective shutdown)",
+          "signals": { "LSHH_C101": 1 }
+        }
+      ],
+      "decisionPoints": [
+        {
+          "id": "DP1",
+          "question": "What is your FIRST operator action?",
+          "options": [
+            {
+              "id": "A",
+              "text": "Immediate reset and restart CRU",
+              "result": "Wrong",
+              "impact": "High risk of liquid carryover and compressor damage; root cause not addressed."
+            },
+            {
+              "id": "B",
+              "text": "Confirm C-101 drain status and verify liquid accumulation; check drain seal drum / manual drain readiness",
+              "result": "Correct",
+              "impact": "Addresses root cause and protects compressors before restart."
+            },
+            {
+              "id": "C",
+              "text": "Increase loading / open loader valve to stabilize",
+              "result": "Wrong",
+              "impact": "Not applicable during trip; may worsen suction conditions."
+            }
+          ],
+          "bestAnswer": "B"
+        }
+      ],
+      "recoveryChecklist": [
+        "Verify C-101 drained and stable",
+        "Confirm upstream tank TV conditions not slugging",
+        "Confirm suction path clear and no liquid carryover indicators",
+        "Only then proceed with controlled restart per procedures"
+      ]
+    }
+  ]
+}
