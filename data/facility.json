@@ -1,0 +1,10 @@
+{
+  "facilityName": "GC Operator-II Integrated Training & Decision Support",
+  "areas": [
+    { "id": "main_plant", "name": "Main Plant / Wet Oil", "type": "process" },
+    { "id": "tanks", "name": "Wet/Dual/Dry Tanks & TV Header", "type": "process" },
+    { "id": "cru", "name": "CRU (3-Stage Compression)", "type": "process" },
+    { "id": "condensate", "name": "Condensate System (G-101/G-102)", "type": "utility" },
+    { "id": "export", "name": "LPG / HP System Interface", "type": "process" }
+  ]
+}
